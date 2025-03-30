@@ -10,6 +10,7 @@ class current_board:
         self.black_pieces_on_board = 0
 
         self.total_pieces = total_pieces
+        self.previous_rows = None
 
 
     def display(self):
@@ -27,8 +28,10 @@ class current_board:
 
             if (piece % 2) == 0:
                 colour = self.white_piece
+                self.white_pieces_on_board += 1
             else:
                 colour = self.black_piece
+                self.black_pieces_on_board += 1
 
             while point_valid == False:
                 random_point = np.random.randint(0, board_size)
@@ -41,55 +44,160 @@ class current_board:
 
 
     def next_turn(self, colour):
-        if colour == self.white_piece:
-            colour = self.black_piece
+        if colour == "white":
+            colour = "black"
         else:
-            colour = self.white_piece
+            colour = "white"
 
         return colour
 
 
     def check_row(self, point1, point2, point3):
         board = self.board
+        checked = None
 
         if (board[point1] == " ") or (board[point2] == " ") or (board[point3] == " "):
-            return False
+            checked = False
         else:
             if (board[point1] == board[point2]) and (board[point1] == board[point3]):
-                return True
+                checked = True
             else:
-                return False
+                checked = False
+        
+        return checked
 
 
     def board_state(self):
         board = self.board
         index = -1
         state_value = "3"
+        all_rows = dict()
 
-        if (self.check_row(0, 1, 2)) or (self.check_row(0, 9, 21)):
+
+        point1 = 0
+        point2 = 1
+        point3 = 2
+        if (self.check_row(point1, point2, point3)):
             index = 0
-        elif (self.check_row(2, 14, 23)) or (self.check_row(21, 22, 23)):
-            index = 23
-        elif (self.check_row(1, 4, 7)) or (self.check_row(3, 4, 5)):
-            index = 4
-        elif (self.check_row(3, 10, 18)) or (self.check_row(9, 10, 11)):
-            index = 10
-        elif (self.check_row(5, 13, 20)) or (self.check_row(12, 13, 14)):
-            index = 13
-        elif (self.check_row(16, 19, 22)) or (self.check_row(18, 19, 20)):
-            index = 19
-        elif (self.check_row(6, 7, 8)) or (self.check_row(6, 11, 15)):
-            index = 6
-        elif (self.check_row(8, 12, 17)) or (self.check_row(15, 16, 17)):
-            index = 17
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 0
+        point2 = 9
+        point3 = 21
+        if (self.check_row(point1, point2, point3)):
+            index = 0
+            all_rows[str(index)] = [point1, point2, point3]
 
-        if index != -1:
-            state_value = board[index]
+        point1 = 2
+        point2 = 14
+        point3 = 23
+        if (self.check_row(point1, point2, point3)):
+            index = 23
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 21
+        point2 = 22
+        point3 = 23
+        if (self.check_row(point1, point2, point3)):
+            index = 23
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 1
+        point2 = 4
+        point3 = 7
+        if (self.check_row(point1, point2, point3)):
+            index = 4
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 3
+        point2 = 4
+        point3 = 5
+        if (self.check_row(point1, point2, point3)):
+            index = 4
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 3
+        point2 = 10
+        point3 = 18
+        if (self.check_row(point1, point2, point3)):
+            index = 10
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 9
+        point2 = 10
+        point3 = 11
+        if (self.check_row(point1, point2, point3)):
+            index = 10
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 5
+        point2 = 13
+        point3 = 20
+        if (self.check_row(point1, point2, point3)):
+            index = 13
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 12
+        point2 = 13
+        point3 = 14
+        if (self.check_row(point1, point2, point3)):
+            index = 13
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 16
+        point2 = 19
+        point3 = 22
+        if (self.check_row(point1, point2, point3)):
+            index = 19
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 18
+        point2 = 19
+        point3 = 20
+        if (self.check_row(point1, point2, point3)):
+            index = 19
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 6
+        point2 = 7
+        point3 = 8
+        if (self.check_row(point1, point2, point3)):
+            index = 6
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 6
+        point2 = 11
+        point3 = 15
+        if (self.check_row(point1, point2, point3)):
+            index = 6
+            all_rows[str(index)] = [point1, point2, point3]
+
+        point1 = 8
+        point2 = 12
+        point3 = 17
+        if (self.check_row(point1, point2, point3)):
+            index = 17
+            all_rows[str(index)] = [point1, point2, point3]
+        point1 = 15
+        point2 = 16
+        point3 = 17
+        if (self.check_row(point1, point2, point3)):
+            index = 17
+            all_rows[str(index)] = [point1, point2, point3]
+
+
+        send_previous_rows = self.previous_rows
+        self.previous_rows = all_rows
+        current_rows = []
+        if len(all_rows) > 0:
+            colour_values = []
+            for entry in all_rows.keys():
+                colour_as_int = int(board[int(entry)])
+                if colour_as_int == 1:
+                    colour_values.append("white")
+                else:
+                    colour_values.append("black")
+                current_rows.append(all_rows[entry])
+
+            state_value = colour_values
         else:
             # No lines of 3 available
             state_value = "3"
 
-        return state_value
+        return state_value, send_previous_rows, all_rows
 
     
     def all_adjacent_pieces(self):
@@ -104,7 +212,7 @@ class current_board:
 
             "6" : [7, 11],
             "7" : [4, 6, 8],
-            "8" : [7, 11],
+            "8" : [7, 12],
             
             "9" : [0, 10, 21],
             "10" : [3, 9, 11, 18],
@@ -128,6 +236,16 @@ class current_board:
         }
 
         return adj_pieces
+    
+
+    def check_game_finished(self, game_finished):
+        num_black_left = self.black_pieces_on_board
+        num_white_left = self.white_pieces_on_board
+
+        if (num_black_left < 3) or (num_white_left < 3):
+            game_finished = True
+
+        return game_finished
 
 
   # def all_possible_moves(self, colour):

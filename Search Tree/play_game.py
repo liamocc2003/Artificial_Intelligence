@@ -21,9 +21,15 @@ class play_game:
 
         self.cb = current_board
         self.cb.populate_board()
+        self.game_finished = False
+
+        self.selected_piece = None
+        self.spaces_to_move = None
+        self.move_from_pos = None
 
     def display(self):
         cb = self.cb
+
         player_colour = input("Do you want to play as white or black (" + cb.white_piece + "/" + cb.black_piece + "): ").capitalize()
         if player_colour != cb.white_piece and player_colour != cb.black_piece:
             print("Incorrect input! Try again")
@@ -31,9 +37,11 @@ class play_game:
 
         if player_colour == cb.white_piece:
             player_colour = "white"
+            comp_colour = "black"
             player_turn = True
         else:
             player_colour = "black"
+            comp_colour = "white"
             player_turn = False
 
         self.window = pyg.display.set_mode((self.width, self.height))
@@ -47,47 +55,92 @@ class play_game:
         else:
             run_loop = False
 
-        while run_loop:
-            eventList = pyg.event.get()
+        while self.game_finished == False:
 
-            for event in eventList:
-                if event.type == pyg.QUIT:
-                    run_loop = False
-                
-                if event.type == pyg.MOUSEBUTTONUP:
-                    mouse_position = pyg.mouse.get_pos()
-                    mouse_position_x = mouse_position[0]
-                    mouse_position_y = mouse_position[1]
+            self.check_row(player_colour)
 
-                    if (mouse_position_x > 600) or (mouse_position_x < 0) or (mouse_position_y > 600) or (mouse_position_y < 0):
-                        # Ignore input
-                        pass
-                    else:
-                        coords = self.get_all_coords()
-                        coords = coords.items()
+            # Player's turn
+            while run_loop:
+                eventList = pyg.event.get()
 
-                        for coord in coords:
-                            circle_x = coord[1][0]
-                            circle_y = coord[1][1]
+                for event in eventList:
+                    if event.type == pyg.QUIT:
+                        run_loop = False
+                    
+                    if event.type == pyg.MOUSEBUTTONUP:
+                        mouse_position = pyg.mouse.get_pos()
+                        mouse_position_x = mouse_position[0]
+                        mouse_position_y = mouse_position[1]
 
-                            # Pythagorean theorom for checking if mouse click was within a circle
-                            sqaured_x = (mouse_position_x - circle_x) ** 2
-                            sqaured_y = (mouse_position_y - circle_y) ** 2
+                        if (mouse_position_x > 600) or (mouse_position_x < 0) or (mouse_position_y > 600) or (mouse_position_y < 0):
+                            # Ignore input
+                            pass
+                        else:
+                            coords = self.get_all_coords()
+                            coords = coords.items()
 
-                            pythag_theorom = math.sqrt(sqaured_x + sqaured_y)
-                            if pythag_theorom <= self.radius:
-                                circle_clicked = coord[0]
-                                circle_name_len = len(circle_clicked)
+                            for coord in coords:
+                                circle_x = coord[1][0]
+                                circle_y = coord[1][1]
 
-                                circle_num = circle_clicked[-1]
-                                if circle_name_len > 6:
-                                    circle_num = circle_clicked[-2] + circle_num
-                                circle_num = int(circle_num)
+                                # Pythagorean theorom for checking if mouse click was within a circle
+                                sqaured_x = (mouse_position_x - circle_x) ** 2
+                                sqaured_y = (mouse_position_y - circle_y) ** 2
+
+                                pythag_theorom = math.sqrt(sqaured_x + sqaured_y)
+                                if pythag_theorom <= self.radius:
+                                    # get the name of the circle that was clicked
+                                    circle_clicked = coord[0]
+                                    circle_name_len = len(circle_clicked)
+
+                                    # get the circle number
+                                    circle_num = circle_clicked[-1]
+                                    if circle_name_len > 6:
+                                        circle_num = circle_clicked[-2] + circle_num
+                                    circle_num = int(circle_num)
+                                    self.selected_piece = circle_num
+                                    
+                                    # get the circle colour of the clicked circle
+                                    circle_colour = self.get_colour_from_click(mouse_position)
+
+                                    # if circle colour is the same as player colour, highlight available spaces around it
+                                    if player_colour == circle_colour:
+                                        self.spaces_to_move = self.highlight_spaces(circle_num)
+                                        self.move_from_pos = self.selected_piece
+                                    
+                                    # move piece
+                                    if circle_colour == "brown":
+                                        self.move_piece()
+                                        run_loop = False
+                                        break
+
+
                                 
-                                circle_colour = self.get_colour_from_click(mouse_position)
-                                self.highlight_spaces(player_colour, circle_num, circle_colour)
-            pyg.display.update()
+                pyg.display.update()
+
+            # Check if player won
+            self.game_finished = cb.check_game_finished(self.game_finished)
+            if self.game_finished == True:
+                win_colour = player_colour
+
+
+            # Comp's turn
+            while (run_loop == False):# and (self.game_finished == False):
+                run_loop = True
+                self.game_finished = True
+
+            # Check if comp won
+            self.game_finished = cb.check_game_finished(self.game_finished)
+            if self.game_finished == True:
+                win_colour = comp_colour
+
+                
         pyg.quit()
+
+        if win_colour == player_colour:
+            print("Player has won.")
+        else:
+            print("Comp has won")
 
 
     def get_all_coords(self):
@@ -226,29 +279,69 @@ class play_game:
         coords = self.get_all_coords()
 
         if colour == "brown":
+            pyg.draw.circle(self.window, self.colours["brown"], coords["coord" + str(circle_number)], self.radius, 0)
             pyg.draw.circle(self.window, self.colours["black"], coords["coord" + str(circle_number)], self.radius, 3)
         else:
             pyg.draw.circle(self.window, self.colours[colour], coords["coord" + str(circle_number)], self.radius, 0)
 
 
-    def highlight_spaces(self, player_colour, circle_number, circle_colour):
+    def highlight_spaces(self, circle_number):
         all_pieces = []
 
-        if player_colour == circle_colour:
-            self.draw_populated_colours()
-            circle_coords = self.get_all_coords()
-            available_spots = self.cb.all_adjacent_pieces()
+        self.draw_populated_colours()
+        circle_coords = self.get_all_coords()
+        available_spots = self.cb.all_adjacent_pieces()
 
-            spots_to_check = available_spots[str(circle_number)]
-            for circle in spots_to_check:
-                current_circle_coords = circle_coords["coord" + str(circle)]
-                colour = self.get_colour_from_click(current_circle_coords)
-                if colour == 'brown':
-                    all_pieces.append(circle)
+        spots_to_check = available_spots[str(circle_number)]
+        for circle in spots_to_check:
+            current_circle_coords = circle_coords["coord" + str(circle)]
+            colour = self.get_colour_from_click(current_circle_coords)
+            if colour == 'brown':
+                all_pieces.append(circle)
             
         if len(all_pieces) > 0:
             for circle in all_pieces:
                 pyg.draw.circle(self.window, self.colours["yellow"], circle_coords["coord" + str(circle)], self.radius, 3)
+        
+        return all_pieces
+
+    
+    def move_piece(self):
+        board = self.cb.display()
+
+        spaces_to_move = self.spaces_to_move
+        if spaces_to_move != None:
+            move_to_pos = self.selected_piece
+            move_from_pos = self.move_from_pos
+
+            if move_to_pos in spaces_to_move:
+                board = board[:move_from_pos] + " " + board[move_from_pos + 1:]
+                board = board[:move_to_pos] + "1" + board[move_to_pos + 1:]
+
+                self.cb.board = board
+        
+        self.draw_populated_colours()
+
+    
+    def check_row(self, current_colour):
+        state = self.cb.board_state()
+        print(state)
+
+        other_colour = self.cb.next_turn(current_colour)
+
+        if other_colour in state[0]:
+            for colour_index in range(len(state[0])):
+                if state[0][colour_index] == other_colour:
+                    print("cannot remove " + str(tuple(state[2].items())[colour_index][1]))
+
+        # if current_colour in state[0]:
+        #     print(state[2].values())
+        #     print(state[1].values())
+        #     if state[1] == None: 
+        #         return
+            
+        #     if state[2].values() != state[1].values():
+        #         print("user can remove piece")
 
 
 
