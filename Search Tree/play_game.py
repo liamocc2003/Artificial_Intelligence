@@ -111,9 +111,9 @@ class play_game:
                                         if circle_colour == self.comp_colour:
                                             num_remove_indexes = len(cannot_remove_indexes)
                                             if self.comp_colour == "white":
-                                                num_color_pieces = cb.white_pieces_on_board
+                                                num_color_pieces = self.cb.white_pieces_on_board
                                             else:
-                                                num_color_pieces = cb.black_pieces_on_board
+                                                num_color_pieces = self.cb.black_pieces_on_board
 
                                             if (num_remove_indexes > 0) and (num_remove_indexes * 3 != num_color_pieces):
 
@@ -147,21 +147,20 @@ class play_game:
                 pyg.display.update()
 
             # Check if player won
-            self.game_finished = cb.check_game_finished(self.game_finished)
+            self.game_finished = self.cb.check_game_finished(self.game_finished)
             if self.game_finished == True:
                 win_colour = self.player_colour
 
             # Comp's turn
             if self.game_finished == False:
-                print("comp turn")
-                #search_tree = search_tree_node(cb, self.comp_colour)
-                #search_tree.min_max_value()
-                #cb = search_tree.children[-1].current_board
+                search_tree = search_tree_node(self.cb, self.comp_colour)
+                search_tree.min_max_value()
+                self.cb = search_tree.children[-1].current_board
+                self.draw_populated_colours()
                 run_loop = True
-                self.game_finished = True
 
                 # Check if comp won
-                self.game_finished = cb.check_game_finished(self.game_finished)
+                self.game_finished = self.cb.check_game_finished(self.game_finished)
                 if self.game_finished == True:
                     win_colour = self.comp_colour
 

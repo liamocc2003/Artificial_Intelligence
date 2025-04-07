@@ -6,8 +6,8 @@ class current_board:
         self.white_piece = white_piece
         self.black_piece = black_piece
 
-        self.white_pieces_on_board = 0
-        self.black_pieces_on_board = 0
+        self.white_pieces_on_board = self.check_num_pieces_on_board('1')
+        self.black_pieces_on_board = self.check_num_pieces_on_board('2')
 
         self.total_pieces = total_pieces
         self.previous_rows = {}
@@ -246,6 +246,17 @@ class current_board:
             game_finished = True
 
         return game_finished
+    
+
+    def check_num_pieces_on_board(self, colour_as_int):
+        board = self.board
+        piece_counter = 0
+
+        for char in board:
+            if char == colour_as_int:
+                piece_counter += 1
+
+        return piece_counter
 
 
     def all_possible_moves(self, colour_as_int):
@@ -285,34 +296,6 @@ class current_board:
                         possible_moves.append(new_board)
         
         return possible_moves
-    
-
-    # def remove_colour_possibilities(self, colour_to_remove_as_str):
-    #     board = self.board
-    #     possible_moves = []
-    #     cant_remove = []
-
-    #     if colour_to_remove_as_str == "white":
-    #         colour_to_remove_as_int = 1
-    #     else:
-    #         colour_to_remove_as_int = 2
-
-    #     state_value, prev_lines, current_lines = self.board_state()
-    #     for value in tuple(current_lines.keys()):
-    #         if board[int(value)] == str(colour_to_remove_as_int):
-    #             for board_index in current_lines[value]:
-    #                 if board_index not in tuple(prev_lines.values()):
-    #                     cant_remove.append(board_index)
-
-
-    #     for space in range(len(self.board)):
-    #         if board[space] == str(colour_to_remove_as_int):
-    #             if space not in cant_remove:
-    #                 new_board = board[:space] + " " + board[space + 1:]
-    #                 possible_moves.append(new_board)
-        
-    #     return possible_moves
-
 
 
 if __name__ == "__main__":
@@ -330,8 +313,3 @@ if __name__ == "__main__":
     all_moves = cb.all_possible_moves(1)
     for move in all_moves:
         print("-", move.display())
-
-    # print("  Removing:")
-    # all_moves = cb.remove_colour_possibilities("black")
-    # for move in all_moves:
-    #     print("   -", move)
