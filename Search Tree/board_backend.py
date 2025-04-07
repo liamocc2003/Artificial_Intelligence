@@ -10,7 +10,7 @@ class current_board:
         self.black_pieces_on_board = 0
 
         self.total_pieces = total_pieces
-        self.previous_rows = None
+        self.previous_rows = {}
 
 
     def display(self):
@@ -248,23 +248,90 @@ class current_board:
         return game_finished
 
 
-  # def all_possible_moves(self, colour):
-  #   board = self.board
-  #   possible_moves = []
+    def all_possible_moves(self, colour_as_int):
+        board = self.board
+        possible_moves = []
+        cant_remove = []
+        adj_pieces = self.all_adjacent_pieces()
+        state_value, prev_lines, current_lines = self.board_state()
 
-  #   for space in range(len(self.board)):
-  #     if board[space] == " ":
-  #       possible_moves.append(current_board(board[:space] + colour + board[space + 1:]))
+        if colour_as_int == 1:
+            colour_to_remove_as_int = 2
+        else:
+            colour_to_remove_as_int = 1
 
-  #   return possible_moves
+        # Moving
+        for space in range(len(self.board)):
+            if board[space] == str(colour_as_int):
 
+                for adj_index in adj_pieces[str(space)]:
+                    if board[adj_index] == " ":
+                        board_to_use = board[:space] + " " + board[space + 1:]
+                        new_board = current_board(board_to_use[:adj_index] + str(colour_as_int) + board_to_use[adj_index + 1:])
+                        possible_moves.append(new_board)
+        
+        # Removing
+        if state_value != "3":
+            for value in tuple(current_lines.keys()):
+                if board[int(value)] == str(colour_to_remove_as_int):
+                    for board_index in current_lines[value]:
+                        if board_index not in tuple(prev_lines.values()):
+                            cant_remove.append(board_index)
+
+            for space in range(len(self.board)):
+                if board[space] == str(colour_to_remove_as_int):
+                    if space not in cant_remove:
+                        new_board = current_board(board[:space] + " " + board[space + 1:])
+                        possible_moves.append(new_board)
+        
+        return possible_moves
+    
+
+    # def remove_colour_possibilities(self, colour_to_remove_as_str):
+    #     board = self.board
+    #     possible_moves = []
+    #     cant_remove = []
+
+    #     if colour_to_remove_as_str == "white":
+    #         colour_to_remove_as_int = 1
+    #     else:
+    #         colour_to_remove_as_int = 2
+
+    #     state_value, prev_lines, current_lines = self.board_state()
+    #     for value in tuple(current_lines.keys()):
+    #         if board[int(value)] == str(colour_to_remove_as_int):
+    #             for board_index in current_lines[value]:
+    #                 if board_index not in tuple(prev_lines.values()):
+    #                     cant_remove.append(board_index)
+
+
+    #     for space in range(len(self.board)):
+    #         if board[space] == str(colour_to_remove_as_int):
+    #             if space not in cant_remove:
+    #                 new_board = board[:space] + " " + board[space + 1:]
+    #                 possible_moves.append(new_board)
+        
+    #     return possible_moves
 
 
 
 if __name__ == "__main__":
     cb = current_board()
     board = cb.display()
-    print(board)
+    print("Default:", board)
+
     cb.populate_board()
     board = cb.display()
-    print(board)
+    print("Populated:", board)
+
+    print()
+
+    print("All possible moves:")
+    all_moves = cb.all_possible_moves(1)
+    for move in all_moves:
+        print("-", move.display())
+
+    # print("  Removing:")
+    # all_moves = cb.remove_colour_possibilities("black")
+    # for move in all_moves:
+    #     print("   -", move)

@@ -23,6 +23,9 @@ class play_game:
         self.cb.populate_board()
         self.game_finished = False
 
+        self.player_colour = None
+        self.comp_colour = None
+
         self.selected_piece = None
         self.spaces_to_move = None
         self.move_from_pos = None
@@ -30,18 +33,18 @@ class play_game:
     def display(self):
         cb = self.cb
 
-        player_colour = input("Do you want to play as white or black (" + cb.white_piece + "/" + cb.black_piece + "): ").capitalize()
-        if player_colour != cb.white_piece and player_colour != cb.black_piece:
+        self.player_colour = input("Do you want to play as white or black (" + cb.white_piece + "/" + cb.black_piece + "): ").capitalize()
+        if self.player_colour != cb.white_piece and self.player_colour != cb.black_piece:
             print("Incorrect input! Try again")
             exit()
 
-        if player_colour == cb.white_piece:
-            player_colour = "white"
-            comp_colour = "black"
+        if self.player_colour == cb.white_piece:
+            self.player_colour = "white"
+            self.comp_colour = "black"
             player_turn = True
         else:
-            player_colour = "black"
-            comp_colour = "white"
+            self.player_colour = "black"
+            self.comp_colour = "white"
             player_turn = False
 
         self.window = pyg.display.set_mode((self.width, self.height))
@@ -55,17 +58,17 @@ class play_game:
         else:
             run_loop = False
 
+        remove_piece = False
+
         while self.game_finished == False:
-
-            self.check_row(player_colour)
-
             # Player's turn
-            while run_loop:
+            while run_loop or remove_piece:
                 eventList = pyg.event.get()
 
                 for event in eventList:
                     if event.type == pyg.QUIT:
                         run_loop = False
+                        self.game_finished = True
                     
                     if event.type == pyg.MOUSEBUTTONUP:
                         mouse_position = pyg.mouse.get_pos()
@@ -103,41 +106,69 @@ class play_game:
                                     # get the circle colour of the clicked circle
                                     circle_colour = self.get_colour_from_click(mouse_position)
 
-                                    # if circle colour is the same as player colour, highlight available spaces around it
-                                    if player_colour == circle_colour:
-                                        self.spaces_to_move = self.highlight_spaces(circle_num)
-                                        self.move_from_pos = self.selected_piece
-                                    
-                                    # move piece
-                                    if circle_colour == "brown":
-                                        self.move_piece()
-                                        run_loop = False
-                                        break
+                                    # Remove piece
+                                    if remove_piece == True:
+                                        if circle_colour == self.comp_colour:
+                                            num_remove_indexes = len(cannot_remove_indexes)
+                                            if self.comp_colour == "white":
+                                                num_color_pieces = cb.white_pieces_on_board
+                                            else:
+                                                num_color_pieces = cb.black_pieces_on_board
 
+                                            if (num_remove_indexes > 0) and (num_remove_indexes * 3 != num_color_pieces):
 
-                                
+                                                for row in cannot_remove_indexes:
+                                                    if self.selected_piece not in row:
+                                                        self.remove_piece(self.selected_piece)
+                                                        remove_piece = False
+                                                        run_loop = False
+                                            else:
+                                                self.remove_piece(self.selected_piece)
+                                                remove_piece = False
+                                                run_loop = False
+
+                                        else:
+                                            break
+                                    else:
+                                        # if circle colour is the same as player colour, highlight available spaces around it
+                                        if self.player_colour == circle_colour:
+                                            self.spaces_to_move = self.highlight_spaces(circle_num)
+                                            self.move_from_pos = self.selected_piece
+                                        
+                                        # move piece
+                                        if circle_colour == "brown":
+                                            self.move_piece()
+                                            can_remove, cannot_remove_indexes = self.check_row(self.player_colour)
+                                            if can_remove:
+                                                remove_piece = True
+                                                break
+                                            else:
+                                                run_loop = False
                 pyg.display.update()
 
             # Check if player won
             self.game_finished = cb.check_game_finished(self.game_finished)
             if self.game_finished == True:
-                win_colour = player_colour
-
+                win_colour = self.player_colour
 
             # Comp's turn
-            while (run_loop == False):# and (self.game_finished == False):
+            if self.game_finished == False:
+                print("comp turn")
+                #search_tree = search_tree_node(cb, self.comp_colour)
+                #search_tree.min_max_value()
+                #cb = search_tree.children[-1].current_board
                 run_loop = True
                 self.game_finished = True
 
-            # Check if comp won
-            self.game_finished = cb.check_game_finished(self.game_finished)
-            if self.game_finished == True:
-                win_colour = comp_colour
+                # Check if comp won
+                self.game_finished = cb.check_game_finished(self.game_finished)
+                if self.game_finished == True:
+                    win_colour = self.comp_colour
 
                 
         pyg.quit()
 
-        if win_colour == player_colour:
+        if win_colour == self.player_colour:
             print("Player has won.")
         else:
             print("Comp has won")
@@ -325,23 +356,51 @@ class play_game:
     
     def check_row(self, current_colour):
         state = self.cb.board_state()
-        print(state)
+        state_value = state[0]
+        past_lines = state[1]
+        current_lines = state[2]
+
+        cannot_remove = []
+
+        can_remove = False
 
         other_colour = self.cb.next_turn(current_colour)
 
-        if other_colour in state[0]:
-            for colour_index in range(len(state[0])):
-                if state[0][colour_index] == other_colour:
-                    print("cannot remove " + str(tuple(state[2].items())[colour_index][1]))
+        if other_colour in state_value:
+            for colour_index in range(len(state_value)):
+                if state_value[colour_index] == other_colour:
+                    cannot_remove.append(tuple(current_lines.items())[colour_index][1])
 
-        # if current_colour in state[0]:
-        #     print(state[2].values())
-        #     print(state[1].values())
-        #     if state[1] == None: 
-        #         return
+        if current_colour in state[0]:
+            if state[1] == None: 
+                return
+
+            past_lines_as_list = list(past_lines.values())
+            current_lines_as_list = list(current_lines.values())
+
+
+            # for each set in current_lines, check if that set is in past_lines
+            # if in past, NO         if not in past, YES
+            can_remove_inc = 0
+            for line_set in current_lines_as_list:
+                if line_set in past_lines_as_list:
+                    can_remove_inc += 1
             
-        #     if state[2].values() != state[1].values():
-        #         print("user can remove piece")
+            if can_remove_inc != len(current_lines):
+                can_remove = True
+        
+        return can_remove, cannot_remove
+
+        
+
+    
+    def remove_piece(self, circle_num):
+        self.change_colour(circle_num, "brown")
+        self.cb.board = self.cb.board[:self.selected_piece] + " " + self.cb.board[self.selected_piece + 1:]
+        if self.comp_colour == "white":
+            self.cb.white_pieces_on_board -= 1
+        else:
+            self.cb.black_pieces_on_board -= 1
 
 
 
