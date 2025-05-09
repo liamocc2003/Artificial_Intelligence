@@ -1,7 +1,7 @@
 import numpy as np
 
 class current_board:
-    def __init__(self, board = (" " * 24), white_piece = "1", black_piece = "2", total_pieces = 14):
+    def __init__(self, board = (" " * 24), white_piece = "1", black_piece = "2", total_pieces = 10):
         self.board = board
         self.white_piece = white_piece
         self.black_piece = black_piece
@@ -294,6 +294,8 @@ class current_board:
                     if space not in cant_remove:
                         new_board = current_board(board[:space] + " " + board[space + 1:])
                         possible_moves.append(new_board)
+
+        print(possible_moves)
         
         return possible_moves
 

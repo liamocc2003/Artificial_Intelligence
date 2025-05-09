@@ -1,0 +1,77 @@
+# Search Tree Assignment - Nine Men's Morris
+Nine Men's Morris contains a board with 3 squares, each made of 8 points and connecting at the edge of the squares. Each player has 9 markers.
+
+In this project, the board has placed 10 pieces, 5 for each player. The game continues from this point with white moving first. Pieces are moved to an adjacent available place, unless 3 adjacent markers form a row. This allows the user to remove a piece from the other user.
+
+Once a user is down to 2 pieces, the gam6e ends and the user with more than 2 pieces wins.
+
+Youtube Tutorial:
+<br> https://www.youtube.com/watch?v=lmFDibk7_qc
+
+
+## CurrentBoard - board_backend.py
+The display function prints the current board as a string filled with 1 for white, and 2 for black.
+
+The board is created using a populate_board function. This function randomly places 5 pieces for each user on the board. This board is then returned as the main board. 
+
+The next_turn function changes the colour to the other user.
+
+The check row takes 3 points and validates if the points contain the same colour. If the colours are the same, a 'True' is returned. If not, 'False' is returned.
+
+The board_state function checks all rows for if any have a complete row. If there is a row, the colour is returned. If not, no colour is returned. The current rows and previous rows are also returned.
+
+The all_adjacent_pieces function creates a dictionary of all adjacent pieces on the board.
+
+The check_game_finished function checks if either user has less than 3 pieces left.
+
+The check_num_pieces_on_board function checks how many pieces of a colour are left on the board.
+
+The all_possible_moves function shows all the possibilities for a user to take when moving a piece or removing the other users. The moving invloves checking all empty spaces beside a piece. The removing a piece checks all the other user's pieces for anything that is not in a row of 3.
+
+
+## Search Tree Node - search_tree.py
+The initialisation of the class checks the colour of the user, the checks if a user has less than 3 pieces left. If a user does, the search tree completes. If not, and the ply_depth is less than the maximum, searhc tree children are generated. Once the generation is complete, or the max depth is reached, value are assigned to determine if the move is beneficial to the computer or not and a value is assigned to the node. This initialisation is run on each node of the search tree.
+
+The min_max_value function sorts the children in the search tree, ordered by the value assigned in the initialisation. The value is the returned.
+
+The generate_children function loops through each possible board, then runs the initialisation on each generated node. All nodes after completion are then added to the chldren array.
+
+
+## Gameplay - play_game.py
+---
+
+### **Running the game**
+
+The display function runs the game. It first asks the player to choose between playing as white or black. Once the colour is selected, the board is drawn and then populated and the pieces are placed on the board.
+<br>(After each users turn, the board is updated to show the current display.)
+
+While the game is not complete, when the user clicks a mouse button the position is taken. It then checks if the user clicks one of the circles using the pythagorean theorom. If the circle is clicked and it is the players piece, it highlights all places for the piece to move. Then after selecting the available space, the piece is moved to this position.
+<br>If it is the AI's turn, the search tree is used. The best path, determined by the search tree, is then followed. This move is completed on the backend and is only updated once it is the player's turn again.
+<br>If a user gets a row of the same colour, a piece can be taken from the other user. Once a user gets less than 3 pieces the game is over and the player with atleast 3 pieces is declared the winner.
+
+---
+
+The get_all_coords function gets the x and y coordinates of the points on the board screen. It gets these positions from diving the board along the width and height by 7 for equal spacing.
+
+The draw_starting_board function draws the lines for the board for showing connecting points. It then loops through all pieces on the board and draws the background of the pieces.
+
+The draw_populated_colours function draws the pieces for each user in their colour and then draws all other circles in the background colour.
+
+The get_colour_from_click function gets the colour at the position clicked by the mouse. This then returns the RGB value of the colour.
+
+The change_colour function uses the circle number to change the board circle to either the background colour or the user's colour.
+
+The highlight_spaces function checks all the available spaces for the chosen circle and highlights the available areas with a yellow border. All pieces are also returned by the function.
+
+The move_piece function changes the original circle to the background colour and the selected area to the user colour.
+
+The check_row function checks if a row of the same colour is on the board and allows that colour to remove a piece from the other user. The list of pieces that can be removed and list of pieces that cannot are then returned.
+
+The remove_piece function changes the piece coloour to the background colour and removes the piece from the pieces_on_board variable of the removed colour.
+
+
+## Testing and evaluation
+The game starts with the randomly placed pieces as seen below:
+![alt text](starting_board.png)
+
+If either user does not have 3 in a row, the search tree will break and wont continue the game.

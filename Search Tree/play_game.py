@@ -137,7 +137,7 @@ class play_game:
                                         
                                         # move piece
                                         if circle_colour == "brown":
-                                            self.move_piece()
+                                            self.move_piece(self.player_colour)
                                             can_remove, cannot_remove_indexes = self.check_row(self.player_colour)
                                             if can_remove:
                                                 remove_piece = True
@@ -154,7 +154,9 @@ class play_game:
             # Comp's turn
             if self.game_finished == False:
                 search_tree = search_tree_node(self.cb, self.comp_colour)
+                print(search_tree.children)
                 search_tree.min_max_value()
+                print(search_tree.children)
                 self.cb = search_tree.children[-1].current_board
                 self.draw_populated_colours()
                 run_loop = True
@@ -336,8 +338,13 @@ class play_game:
         return all_pieces
 
     
-    def move_piece(self):
+    def move_piece(self, colour):
         board = self.cb.display()
+
+        if colour == "white":
+            colour_moving = "1"
+        else:
+            colour_moving = "2"
 
         spaces_to_move = self.spaces_to_move
         if spaces_to_move != None:
@@ -346,7 +353,7 @@ class play_game:
 
             if move_to_pos in spaces_to_move:
                 board = board[:move_from_pos] + " " + board[move_from_pos + 1:]
-                board = board[:move_to_pos] + "1" + board[move_to_pos + 1:]
+                board = board[:move_to_pos] + colour_moving + board[move_to_pos + 1:]
 
                 self.cb.board = board
         

@@ -1,7 +1,8 @@
 class search_tree_node:
-    def __init__(self, board_instance, colour, ply = 0):
+    def __init__(self, board_instance, colour, ply = 0, max_ply_depth = 5):
         self.children = []
         self.ply_depth = ply
+        self.max_ply = max_ply_depth
         self.current_board = board_instance
 
         self.colour_as_int = colour
@@ -12,21 +13,22 @@ class search_tree_node:
         
         self.value_is_assigned = False
 
-
+        
         # One colour has 2 pieces left
-        state_value, prev_lines, current_lines = self.current_board.board_state()
         if (self.current_board.white_pieces_on_board < 3) or (self.current_board.black_pieces_on_board < 3):
             # Branch complete
             self.value = 0
 
         # Game continues
         else:
-            self.generate_children()
+            # Ply depth checker to break if ply depth is too large
+            if self.ply_depth < self.max_ply:
+                self.generate_children()
 
             if ((self.ply_depth % 2) == 0):
-                self.value = 1
-            else:
                 self.value = -1
+            else:
+                self.value = 1
             self.value_is_assigned = True
 
 
@@ -49,11 +51,7 @@ class search_tree_node:
 
 
     def generate_children(self):
-        # Ply depth checker to break if ply depth is too large
-        if self.ply_depth > 5:
-            return
-
-        # If line or no line, generate all moving pieces
+        # Generate all moving pieces
         for next_move_board in self.current_board.all_possible_moves(self.colour_as_int):
             colour = self.current_board.next_turn(self.colour_as_str)
             if colour == "white":
@@ -70,9 +68,14 @@ if __name__ == "__main__":
     from board_backend import current_board
     cb = current_board()
     cb.populate_board()
+
+    print("Starting board: " + cb.display())
+
+    print()
     
     # Generate children
     st = search_tree_node(cb, 1)
+    print("All children for first loop:")
     for child in st.children:
         print(child.current_board.display())
 
